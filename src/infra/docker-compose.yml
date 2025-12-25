@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # Financial Ledger Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: fin_db
+    environment:
+      POSTGRES_DB: fin_arch_db
+      POSTGRES_USER: lead_architect
+      POSTGRES_PASSWORD: secure_fin_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Real-time Event Streaming
+  kafka:
+    image: bitnami/kafka:3.4
+    container_name: fin_events
+    environment:
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+    ports:
+      - "9092:9092"
+
+  # High-speed Caching & Session Management
+  redis:
+    image: redis:7-alpine
+    container_name: fin_cache
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
